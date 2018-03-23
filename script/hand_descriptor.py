@@ -57,14 +57,14 @@ class HandDescriptor:
         self.set_image_max_value(im, coords, values)
         return im
 
-    def get_hand_points(self, cloud, cloud_tree):
+    def get_hand_points(self, cloud):
         """
         transform cloud into hand frame,
         then get points within the box range of self.(image_depth, image_width, image_height)
         :param cloud: original nx3 point cloud
-        :param cloud_tree: cKDTree from cloud
         :return: point cloud after transformation and filtering
         """
+        cloud_tree = cKDTree(cloud)
         search_radius = np.linalg.norm(np.array([self.image_depth, self.image_width, self.image_height]) / 2.0)
         indices = cloud_tree.query_ball_point(self.center, search_radius)
         points = cloud[indices, :]
@@ -78,13 +78,12 @@ class HandDescriptor:
 
         return points
 
-    def generate_depth_image(self, cloud, cloud_tree):
+    def generate_depth_image(self, cloud):
         """
         compute the height map over 3 axises, do grey_dilation, assign depth image to self.image
         :param cloud: original nx3 point cloud
-        :param cloud_tree: cKDTree from cloud
         """
-        points = self.get_hand_points(cloud, cloud_tree)
+        points = self.get_hand_points(cloud)
 
         im1 = self.compute_height_map(points, 2)
         im2 = self.compute_height_map(points, 1)
