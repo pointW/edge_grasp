@@ -23,10 +23,10 @@
   <!-- End RViz -->
   
   <!-- add rviz link to tf -->
-<!-- <node name="add_rviz_frame" pkg="ur_scooter" type="add_rviz_frame.py" output="screen" /> -->
+<!-- <node name="add_rviz_frame" pkg="edge_grasp" type="add_rviz_frame.py" output="screen" /> -->
   
   <!-- add structure_link to tf -->
-  <node name="add_sensor_frame" pkg="ur_scooter" type="add_sensor_frame.py" output="screen" />  
+  <node name="add_sensor_frame" pkg="edge_grasp" type="add_sensor_frame.py" output="screen" />
   
 </launch>
 
