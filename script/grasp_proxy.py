@@ -48,13 +48,14 @@ class GraspProxy:
         header.frame_id = "/base_link"
         cloud_source = point_cloud2.create_cloud_xyz32(header, cloud)
 
-        self.cloud_pub.publish(cloud_source)
         print 'message processing time {} seconds'.format(time.time() - start_time)
-        print 'published point cloud, waiting for grasps ...'
 
         self.wait_for_grasps = True
         while self.wait_for_grasps:
-            rospy.sleep(0.1)
+            self.cloud_pub.publish(cloud_source)
+            print 'published point cloud, waiting for grasps ...'
+            rospy.sleep(0.5)
+
         print 'received', len(self.grasps_msg.grasps), 'grasps'
         return self.process_grasps(self.grasps_msg.grasps, offsets)
 
