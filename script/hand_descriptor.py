@@ -18,9 +18,9 @@ class HandDescriptor:
         self.image = None
 
         self.image_pixel = 60
-        self.image_depth = 0.09
-        self.image_width = 0.09
-        self.image_height = 0.09
+        self.image_depth = 0.1
+        self.image_width = 0.1
+        self.image_height = 0.1
 
         self.approach = T[0:3, 0]
         self.binormal = T[0:3, 1]
@@ -130,7 +130,7 @@ def test():
     T = np.eye(4)
     descriptor = HandDescriptor(T)
     # cloud = np.random.rand(100, 3)
-    cloud = np.array([[1, 1, 1], [2, 2, 2]])
+    cloud = np.array([[0, 0, 0], [0.1, 0, 0.1], [0.05, 0.05, 0.05]])
     im = descriptor.compute_height_map(cloud, 0)
     raw_input()
 
