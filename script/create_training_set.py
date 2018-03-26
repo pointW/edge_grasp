@@ -22,8 +22,12 @@ import point_cloud
 
 
 workspace = [(-1.0, 1.0), (0, 1), (-0.50, 0.50)]
-p = [-0.1, 0.75, -0.2]
-grasp_space = [(p[0]-0.5, p[0]+0.5), (p[1]-0.5, p[1]), (p[2]-0.1, p[2]+0.05)]
+# edge grasp
+# p = [-0.1, 0.75, -0.2]
+# grasp_space = [(p[0]-0.5, p[0]+0.5), (p[1]-0.5, p[1]), (p[2]-0.1, p[2]+0.05)]
+
+p = [-0.09, 0.61, -0.15]
+grasp_space = [(p[0]-0.05, p[0]+0.05), (p[1]-0.05, p[1]+0.05), (p[2]-0.08, p[2]+0.05)]
 
 grasp_offsets = [0.23, 0, 0.16]
 grasp_offsets[1] = grasp_offsets[2] + (grasp_offsets[0]-grasp_offsets[2])/2.0
@@ -40,7 +44,8 @@ cloud = point_cloud_util.filter_workspace(workspace, cloud)
 
 grasp_cloud = point_cloud_util.filter_workspace(grasp_space, cloud)
 grasps = grasp_proxy.detect_grasps_whole_cloud(grasp_cloud, grasp_offsets)
-grasps = filter(lambda g: g.bottom[1] < 0.55, grasps)
+# grasps = filter(lambda g: g.bottom[1] < 0.55, grasps)
+rviz_node.cloud_pub.publish(cloud_proxy.convert_to_point_cloud2(cloud))
 rviz_node.all_grasps_pub.publish(plot.createGraspsMarkerArray(grasps, rgba=[1, 0, 0, 0.5]))
 rviz_node.grasp_space_pub.publish(plot.createGraspsPosCube(grasp_space))
 
@@ -51,15 +56,16 @@ for grasp in grasps:
     test_hand_des.generate_depth_image(cloud)
     array.append(test_hand_des.image)
 array = np.stack(array, 0)
-f = os.path.dirname(__file__) + '/../data/train_test_edge_1.npy'
+f = os.path.dirname(__file__) + '/../data/train_normal_1.npy'
 # old = np.loadtxt(f)
 try:
     old = np.load(f)
     if old.shape[0] != 0:
-        old = old.reshape([old.shape[0], 3, 60, 60])
-        array = np.append(old, array)
+        old = old.reshape([-1, 3, 60, 60])
+        array = np.vstack([array, old])
 finally:
     # np.savetxt(f, array.reshape([array.shape[0], -1]))
-    np.save(f, array.reshape([array.shape[0], -1]))
+    # np.save(f, array.reshape([array.shape[0], -1]))
+    np.save(f, array)
 
 aaa = 1
