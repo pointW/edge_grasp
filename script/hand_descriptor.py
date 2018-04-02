@@ -95,6 +95,16 @@ class HandDescriptor:
 
         self.image = np.stack((im1, im2, im3), 0)
 
+    def generate_3d_binary_image(self, cloud):
+        cloud = self.get_hand_points(cloud)
+        d_max = max(self.image_depth, self.image_width, self.image_height)
+        im = np.zeros((self.image_pixel, self.image_pixel, self.image_pixel), dtype='float32')
+        coords = (cloud[:, :] + d_max / 2.0) * ((self.image_pixel - 1) / d_max)
+        coords[coords < 0] = 0
+        coords[coords > (self.image_pixel - 1)] = self.image_pixel - 1
+        self.set_3d_image_binary(im, coords)
+        self.image = grey_dilation(im, size=3)
+
     @staticmethod
     def T_from_approach_axis_center(approach, axis, center):
         """
@@ -124,6 +134,14 @@ class HandDescriptor:
             row = int(coordinates[i][0])
             col = int(coordinates[i][1])
             image[row, col] = max(image[row, col], values[i])
+
+    @staticmethod
+    def set_3d_image_binary(image, coordinates):
+        for i in coordinates.shape[0]:
+            x = int(coordinates[i][0])
+            y = int(coordinates[i][1])
+            z = int(coordinates[i][2])
+            image[x, y, z] = 1
 
 
 def test():
