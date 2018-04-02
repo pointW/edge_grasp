@@ -52,7 +52,7 @@ class HandDescriptor:
         coords[coords < 0] = 0
         coords[coords > (self.image_pixel - 1)] = self.image_pixel - 1
 
-        values = 1 - ((cloud[:, v_axis] + (d_max / 2.0)) / d_max)
+        values = ((cloud[:, v_axis] + (d_max / 2.0)) / d_max)
 
         self.set_image_max_value(im, coords, values)
         return im
