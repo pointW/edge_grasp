@@ -15,10 +15,14 @@ f = os.path.dirname(__file__) + '/../data/train_normal_1.npy'
 data_normal = np.load(f)
 np.random.shuffle(data_normal)
 test_normal, training_normal = data_normal[:20, :], data_normal[20:, :]
+
 f = os.path.dirname(__file__) + '/../data/train_edge_1.npy'
 data_edge = np.load(f)
+np.random.shuffle(data_edge)
 test_edge, training_edge = data_edge[:20, :], data_edge[20:, :]
+
 training_data = map(lambda x: [x, 0], training_normal) + map(lambda x: [x, 1], training_edge)
+print 'train data: ' + str(len(training_data))
 np.random.shuffle(training_data)
 test_data = map(lambda x: [x, 0], test_normal) + map(lambda x: [x, 1], test_edge)
 
