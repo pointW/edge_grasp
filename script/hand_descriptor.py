@@ -8,7 +8,7 @@ import point_cloud_util
 
 
 class HandDescriptor:
-    def __init__(self, T):
+    def __init__(self, T, pixel=60):
         self.T = T
 
         self.depth = 0.06
@@ -17,7 +17,7 @@ class HandDescriptor:
 
         self.image = None
 
-        self.image_pixel = 60
+        self.image_pixel = pixel
         self.image_depth = 0.1
         self.image_width = 0.1
         self.image_height = 0.1
@@ -137,7 +137,7 @@ class HandDescriptor:
 
     @staticmethod
     def set_3d_image_binary(image, coordinates):
-        for i in coordinates.shape[0]:
+        for i in range(coordinates.shape[0]):
             x = int(coordinates[i][0])
             y = int(coordinates[i][1])
             z = int(coordinates[i][2])
