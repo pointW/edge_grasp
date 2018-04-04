@@ -1,7 +1,7 @@
 import os
 import openravepy
 import point_cloud
-from numpy import dot, array, eye, vstack
+from numpy import dot, array, eye, vstack, cross
 from numpy.linalg import inv
 
 
@@ -60,10 +60,22 @@ if __name__ == '__main__':
     T[0:3, 1] = [0, 1, 0]
     T[0:3, 2] = [-1, 0, 0]
     cloud = None
-    for T3 in [[1, -1, 0.2],
-               [1, -1.5, 0.2],
-               [1, -2, 0.2]]:
-        T[0:3, 3] = T3
+    T1 = eye(4)
+    T1[0:3, 0] = [1, 0, 1]
+    T1[0:3, 2] = [-1, 0, 1]
+    T = T.dot(T1)
+    T1 = eye(4)
+    # T1[0:3, 2] = [0, -1, 1]
+    # T1[0:3, 1] = [0, 1, 1]
+
+    # T1[0:3, 2] = [0, 1, 1]
+    # T1[0:3, 1] = [0, 1, -1]
+    T = T.dot(T1)
+    file = os.getcwd() + "/../data/testpcd.pcd"
+    cloud = point_cloud.LoadPcd(file)
+    for y in range(0, 20):
+        y *= -0.1
+        T[0:3, 3] = [1, y, 1.5]
 
         simulator.MoveSensorToPose(T)
 
