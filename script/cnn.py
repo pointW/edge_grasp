@@ -11,13 +11,31 @@ import torch.optim as optim
 # numpy
 import numpy as np
 
-f = os.path.dirname(__file__) + '/../data/train_normal_1.npy'
+f = os.path.dirname(__file__) + '/../data/npy/normal_2d.npy'
+print f
 data_normal = np.load(f)
+
+f = os.path.dirname(__file__) + '/../data/npy/normal1_2d.npy'
+data = np.load(f)
+data_normal = np.vstack((data_normal, data))
+print 'normal data: ' + str(data_normal.shape[0])
+
 np.random.shuffle(data_normal)
 test_normal, training_normal = data_normal[:20, :], data_normal[20:, :]
 
-f = os.path.dirname(__file__) + '/../data/train_edge_1.npy'
+
+f = os.path.dirname(__file__) + '/../data/npy/edge_table1_2d.npy'
 data_edge = np.load(f)
+
+f = os.path.dirname(__file__) + '/../data/npy/edge_table2_2d.npy'
+data = np.load(f)
+data_edge = np.vstack((data_edge, data))
+
+f = os.path.dirname(__file__) + '/../data/npy/edge_shelf_2d.npy'
+data = np.load(f)
+data_edge = np.vstack((data_edge, data))
+print 'edge data: ' + str(data_edge.shape[0])
+
 np.random.shuffle(data_edge)
 test_edge, training_edge = data_edge[:20, :], data_edge[20:, :]
 
