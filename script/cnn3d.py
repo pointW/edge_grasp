@@ -7,24 +7,63 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import torch.utils.data as Data
 
 # numpy
 import numpy as np
 
-f = os.path.dirname(__file__) + '/../data/train_normal_3d.npy'
+
+f = os.path.dirname(__file__) + '/../data/npy/normal_3d.npy'
+print f
 data_normal = np.load(f)
+
+f = os.path.dirname(__file__) + '/../data/npy/normal1_3d.npy'
+data = np.load(f)
+data_normal = np.vstack((data_normal, data))
+print 'normal data: ' + str(data_normal.shape[0])
+
 np.random.shuffle(data_normal)
-test_normal, training_normal = data_normal[:20, :], data_normal[20:, :]
+test_normal, training_normal = data_normal[:100, :], data_normal[100:, :]
 
-f = os.path.dirname(__file__) + '/../data/train_edge_3d.npy'
+
+f = os.path.dirname(__file__) + '/../data/npy/edge_table1_3d.npy'
 data_edge = np.load(f)
-np.random.shuffle(data_edge)
-test_edge, training_edge = data_edge[:20, :], data_edge[20:, :]
 
-training_data = map(lambda x: [x, 0], training_normal) + map(lambda x: [x, 1], training_edge)
-print 'train data: ' + str(len(training_data))
-np.random.shuffle(training_data)
-test_data = map(lambda x: [x, 0], test_normal) + map(lambda x: [x, 1], test_edge)
+f = os.path.dirname(__file__) + '/../data/npy/edge_table2_3d.npy'
+data = np.load(f)
+data_edge = np.vstack((data_edge, data))
+
+f = os.path.dirname(__file__) + '/../data/npy/edge_shelf_3d.npy'
+data = np.load(f)
+data_edge = np.vstack((data_edge, data))
+print 'edge data: ' + str(data_edge.shape[0])
+
+np.random.shuffle(data_edge)
+test_edge, training_edge = data_edge[:100, :], data_edge[100:, :]
+
+
+training_data = torch.cat((torch.FloatTensor(training_normal),
+                           torch.FloatTensor(training_edge))).unsqueeze(1)
+training_label = torch.cat((torch.zeros(training_normal.shape[0]),
+                            torch.ones(training_edge.shape[0]))).type(torch.LongTensor)
+
+test_data = torch.cat((torch.FloatTensor(test_normal),
+                       torch.FloatTensor(test_edge))).unsqueeze(1)
+test_label = torch.cat((torch.zeros(test_normal.shape[0]),
+                        torch.ones(test_edge.shape[0]))).type(torch.LongTensor)
+
+training_set = Data.TensorDataset(training_data, training_label)
+training_loader = Data.DataLoader(
+    dataset=training_set,
+    batch_size=64,
+    shuffle=True,
+)
+
+test_set = Data.TensorDataset(test_data, test_label)
+test_loader = Data.DataLoader(
+    dataset=test_set,
+    batch_size=64,
+)
 
 
 class CNN3D(nn.Module):
@@ -53,47 +92,35 @@ class CNN3D(nn.Module):
 
 cnn = CNN3D()
 criterion = F.cross_entropy
-optimizer = optim.SGD(cnn.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(cnn.parameters(), lr=0.01, momentum=0.5)
 
 
 def train(epoch):
-    cnn.train()
-    running_loss = 0.0
-    for i, data in enumerate(training_data):
-        inputs, labels = data
-        inputs, labels = torch.FloatTensor(inputs), torch.LongTensor([labels])
-        inputs = torch.unsqueeze(inputs, 0)
-        inputs = torch.unsqueeze(inputs, 0)
-        inputs, labels = Variable(inputs), Variable(labels)
+    for step, (batch_x, batch_y) in enumerate(training_loader):
+        inputs, labels = Variable(batch_x), Variable(batch_y)
         optimizer.zero_grad()
         outputs = cnn(inputs)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-
-        running_loss += loss.data[0]
-        if i % 20 == 19:
-            print '[%d, %d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 20)
-            running_loss = 0.0
-    print 'finished'
+        print '[%d, %d] loss: %.3f' % (epoch + 1, step + 1, loss.data[0])
+    print 'finished epoch ' + str(epoch)
 
 
 def test():
     cnn.eval()
     test_loss = 0
     correct = 0
-    for data, target in test_data:
-        data, target = torch.FloatTensor(data), torch.LongTensor([target])
-        data = torch.unsqueeze(data, 0)
-        data = torch.unsqueeze(data, 0)
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = cnn(data)
-        test_loss += criterion(output, target).data[0]
-        prediction = output.data.max(1, keepdim=True)[1]
-        correct += prediction.eq(target.data.view_as(prediction)).long().sum()
-    test_loss /= len(test_data)
-    print test_loss
-    print correct
+    for inputs, labels in test_loader:
+        inputs, labels = Variable(inputs, volatile=True), Variable(labels)
+        outputs = cnn(inputs)
+        test_loss += criterion(outputs, labels, size_average=False).data[0]
+        prediction = outputs.data.max(1, keepdim=True)[1]
+        correct += prediction.eq(labels.data.view_as(prediction)).long().cpu().sum()
+    test_loss /= len(test_loader.dataset)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
 
 
 if __name__ == '__main__':
