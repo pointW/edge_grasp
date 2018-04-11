@@ -12,6 +12,9 @@ import torch.utils.data as Data
 # numpy
 import numpy as np
 
+# pyplot
+import matplotlib.pyplot as plt
+
 f = os.path.dirname(__file__) + '/../data/npy/normal_2d.npy'
 print f
 data_normal = np.load(f)
@@ -99,15 +102,39 @@ optimizer = optim.SGD(cnn.parameters(), lr=0.01, momentum=0.5)
 
 
 def train(epoch):
-    for step, (batch_x, batch_y) in enumerate(training_loader):
-        inputs, labels = Variable(batch_x), Variable(batch_y)
-        optimizer.zero_grad()
-        outputs = cnn(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-        print '[%d, %d] loss: %.3f' % (epoch + 1, step + 1, loss.data[0])
-    print 'finished epoch ' + str(epoch)
+    step_each_ep = 0
+    steps = []
+    training_loss = []
+    correct_rate = []
+    test_loss = []
+    eps = []
+    ticks = []
+
+    for ep in range(epoch):
+        for step, (batch_x, batch_y) in enumerate(training_loader):
+            cnn.train()
+            inputs, labels = Variable(batch_x), Variable(batch_y)
+            optimizer.zero_grad()
+            outputs = cnn(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            print '[%d, %d] loss: %.3f' % (ep + 1, step + 1, loss.data[0])
+
+            if ep == 0:
+                steps.append(step)
+                step_each_ep += 1
+            else:
+                steps.append(step + ep * step_each_ep)
+            training_loss.append(loss.data[0])
+        print 'finished epoch ' + str(ep)
+        c, t = test()
+        correct_rate.append(c)
+        test_loss.append(t)
+        eps.append(ep+1)
+        ticks.append(steps[-1])
+
+    plot_train_test(steps, training_loss, eps, test_loss, correct_rate, ticks)
 
 
 def test():
@@ -124,9 +151,30 @@ def test():
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+    return float(correct) / len(test_loader.dataset), test_loss
 
 
-for epoch in range(20):
-    train(epoch)
-    test()
+def plot_train_test(steps, training_loss, eps, test_loss, correct_rate, ticks):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax2 = ax1.twiny()
 
+    lns1 = ax1.plot(steps, training_loss, 'r', label='training loss', alpha=0.5)
+    ax1.set_xlabel('steps')
+    ax1.set_xlim(0, steps[-1])
+
+    ax2.set_xlabel('episodes')
+    ax2.set_xlim(0, eps[-1])
+    lns2 = ax2.plot(eps, test_loss, 'x-', label='test loss')
+    lns3 = ax2.plot(eps, correct_rate, 'x-', label='correct rate')
+
+    lns = lns1 + lns2 + lns3
+    labs = [l.get_label() for l in lns]
+    plt.legend(lns, labs, loc='best')
+    plt.title('training process of 2D CNN', y=1.09)
+
+    plt.show()
+
+
+if __name__ == '__main__':
+    train(30)
