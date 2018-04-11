@@ -71,7 +71,7 @@ if __name__ == '__main__':
     # T1[0:3, 2] = [0, 1, 1]
     # T1[0:3, 1] = [0, 1, -1]
     T = T.dot(T1)
-    file = os.getcwd() + "/../data/testpcd.pcd"
+    file = os.getcwd() + "/../data/pcd/shelf_s.pcd"
     cloud = point_cloud.LoadPcd(file)
     for y in range(0, 20):
         y *= -0.1
@@ -85,6 +85,6 @@ if __name__ == '__main__':
         else:
             cloud = vstack([cloud, cloud1])
 
-    file = os.getcwd() + "/../data/testpcd.pcd"
+    file = os.getcwd() + "/../data/pcd/testpcd.pcd"
     point_cloud.SavePcd(file, cloud)
     print cloud
