@@ -16,6 +16,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+USE_CUDA = True
+
+
 f = os.path.dirname(__file__) + '/../data/npy/normal_3d.npy'
 print f
 data_normal = np.load(f)
@@ -44,16 +47,27 @@ print 'edge data: ' + str(data_edge.shape[0])
 np.random.shuffle(data_edge)
 test_edge, training_edge = data_edge[:100, :], data_edge[100:, :]
 
+if USE_CUDA:
+    training_data = torch.cat((torch.FloatTensor(training_normal),
+                               torch.FloatTensor(training_edge))).unsqueeze(1).cuda()
+    training_label = torch.cat((torch.zeros(training_normal.shape[0]),
+                                torch.ones(training_edge.shape[0]))).type(torch.LongTensor).cuda()
 
-training_data = torch.cat((torch.FloatTensor(training_normal),
-                           torch.FloatTensor(training_edge))).unsqueeze(1)
-training_label = torch.cat((torch.zeros(training_normal.shape[0]),
-                            torch.ones(training_edge.shape[0]))).type(torch.LongTensor)
+    test_data = torch.cat((torch.FloatTensor(test_normal),
+                           torch.FloatTensor(test_edge))).unsqueeze(1).cuda()
+    test_label = torch.cat((torch.zeros(test_normal.shape[0]),
+                            torch.ones(test_edge.shape[0]))).type(torch.LongTensor).cuda()
 
-test_data = torch.cat((torch.FloatTensor(test_normal),
-                       torch.FloatTensor(test_edge))).unsqueeze(1)
-test_label = torch.cat((torch.zeros(test_normal.shape[0]),
-                        torch.ones(test_edge.shape[0]))).type(torch.LongTensor)
+else:
+    training_data = torch.cat((torch.FloatTensor(training_normal),
+                               torch.FloatTensor(training_edge))).unsqueeze(1)
+    training_label = torch.cat((torch.zeros(training_normal.shape[0]),
+                                torch.ones(training_edge.shape[0]))).type(torch.LongTensor)
+
+    test_data = torch.cat((torch.FloatTensor(test_normal),
+                           torch.FloatTensor(test_edge))).unsqueeze(1)
+    test_label = torch.cat((torch.zeros(test_normal.shape[0]),
+                            torch.ones(test_edge.shape[0]))).type(torch.LongTensor)
 
 training_set = Data.TensorDataset(training_data, training_label)
 training_loader = Data.DataLoader(
@@ -94,6 +108,8 @@ class CNN3D(nn.Module):
 
 
 cnn = CNN3D()
+if USE_CUDA:
+    cnn.cuda()
 criterion = F.cross_entropy
 optimizer = optim.SGD(cnn.parameters(), lr=0.01, momentum=0.5)
 
@@ -110,6 +126,9 @@ def train(epoch):
     for ep in range(epoch):
         for step, (batch_x, batch_y) in enumerate(training_loader):
             cnn.train()
+            if USE_CUDA:
+                batch_x = batch_x.cuda()
+                batch_y = batch_y.cuda()
             inputs, labels = Variable(batch_x), Variable(batch_y)
             optimizer.zero_grad()
             outputs = cnn(inputs)
@@ -139,6 +158,9 @@ def test():
     test_loss = 0
     correct = 0
     for inputs, labels in test_loader:
+        if USE_CUDA:
+            inputs = inputs.cuda()
+            labels = labels.cuda()
         inputs, labels = Variable(inputs, volatile=True), Variable(labels)
         outputs = cnn(inputs)
         test_loss += criterion(outputs, labels, size_average=False).data[0]
@@ -174,4 +196,4 @@ def plot_train_test(steps, training_loss, eps, test_loss, correct_rate, ticks):
 
 
 if __name__ == '__main__':
-    train(20)
+    train(30)
