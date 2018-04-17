@@ -11,6 +11,8 @@ class RvizNode:
         self.cloud_pub = rospy.Publisher("/cloud_rviz", PointCloud2Msg, queue_size=1)
         self.all_grasps_pub = rospy.Publisher("/all_grasps", MarkerArray, queue_size=1)
         self.grasp_space_pub = rospy.Publisher("/grasp_space", Marker, queue_size=1)
+        self.edge_grasp_pub = rospy.Publisher("/edge_grasps", MarkerArray, queue_size=1)
+        self.non_edge_grasp_pub = rospy.Publisher("/non_edge_grasps", MarkerArray, queue_size=1)
         # create TF listener to receive transforms
         # self.tfBuffer = tf2_ros.Buffer()
         # self.listener = tf2_ros.TransformListener(self.tfBuffer)

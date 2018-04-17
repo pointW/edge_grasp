@@ -26,6 +26,15 @@ data_normal = np.load(f)
 f = os.path.dirname(__file__) + '/../data/npy/normal1_3d.npy'
 data = np.load(f)
 data_normal = np.vstack((data_normal, data))
+
+f = os.path.dirname(__file__) + '/../data/npy/normal_shelf_3d.npy'
+data = np.load(f)
+data_normal = np.vstack((data_normal, data))
+
+f = os.path.dirname(__file__) + '/../data/npy/normal_shelf1_3d.npy'
+data = np.load(f)
+data_normal = np.vstack((data_normal, data))
+
 print 'normal data: ' + str(data_normal.shape[0])
 
 np.random.shuffle(data_normal)
@@ -42,6 +51,15 @@ data_edge = np.vstack((data_edge, data))
 f = os.path.dirname(__file__) + '/../data/npy/edge_shelf_3d.npy'
 data = np.load(f)
 data_edge = np.vstack((data_edge, data))
+
+f = os.path.dirname(__file__) + '/../data/npy/edge_shelf1_3d.npy'
+data = np.load(f)
+data_edge = np.vstack((data_edge, data))
+
+f = os.path.dirname(__file__) + '/../data/npy/edge_shelf2_3d.npy'
+data = np.load(f)
+data_edge = np.vstack((data_edge, data))
+
 print 'edge data: ' + str(data_edge.shape[0])
 
 np.random.shuffle(data_edge)
@@ -197,3 +215,7 @@ def plot_train_test(steps, training_loss, eps, test_loss, correct_rate, ticks):
 
 if __name__ == '__main__':
     train(30)
+    i = raw_input('save?')
+    if i == 'y':
+        f = os.path.dirname(__file__) + '/../model/cnn3d'
+        torch.save(cnn, f)
