@@ -27,7 +27,7 @@ import point_cloud
 from torch.autograd import Variable
 
 
-cloud_name = 'cloud.pcd'
+cloud_name = 'cloud3.pcd'
 cnn = torch.load(os.path.dirname(__file__) + '/../model/cnn')
 
 workspace = [(-0.5, 1.0), (0, 1.5), (-0.50, 0.50)]
@@ -71,3 +71,5 @@ for i in range(len(grasps)):
 rviz_node.edge_grasp_pub.publish(plot.createGraspsMarkerArray(edge_grasp, rgba=[1, 0, 0, 0.5]))
 rviz_node.non_edge_grasp_pub.publish(plot.createGraspsMarkerArray(non_edge_grasp, rgba=[0, 0, 1, 0.5]))
 rviz_node.cloud_pub.publish(cloud_proxy.convert_to_point_cloud2(cloud))
+print 'edge grasp: {}'.format(len(edge_grasp))
+print 'non-edge grasp: {}'.format(len(non_edge_grasp))
